@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dare or Dare</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      height: 100vh;
+      margin: 0;
+      background: linear-gradient(135deg, #ffe4ec, #ffe7cc);
+      color: #333;
+    }
+    h1 {
+      font-size: 2.5em;
+      margin-bottom: 0.5em;
+    }
+    #dare-box {
+      background: white;
+      padding: 2em;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      max-width: 500px;
+    }
+    button {
+      padding: 0.8em 2em;
+      font-size: 1em;
+      border: none;
+      border-radius: 30px;
+      background: #ff69b4;
+      color: white;
+      cursor: pointer;
+      margin-top: 1em;
+    }
+    button:hover {
+      background: #e155a5;
+    }
+  </style>
+</head>
+<body>
+  <h1>Dare or Dare</h1>
+  <div id="dare-box">
+    <p id="dare-text">Click below to get your dare...</p>
+    <button onclick="getRandomDare()">Next</button>
+  </div>
+
+  <script>
+    const dares = [
+      "Erection Duel: Strip and see who gets hard first.",
+      "Lap Grind Interrogation: Sit on someone's lap and ask forbidden questions while grinding.",
+      "Moan Mimic: Recreate your partner’s bedroom noises.",
+      "Frottage Relay: Dry hump someone for 20 seconds.",
+      "Tease Master: Whisper what you'd do to each player, one by one.",
+      "Erotic Hypnosis: Try to turn someone on with just your voice.",
+      "Freeze Frame Fantasy: Pose naked while someone narrates your fantasy.",
+      "Obey Me: Be someone's servant for 3 rounds.",
+      "Mindfuck Strip Poker: One person owns your underwear now.",
+      "Sensory Strip Roulette: Guess the body part brushing against you while blindfolded.",
+      "Dirty Talk Duel: Go head-to-head with someone to say the nastiest things until someone breaks.",
+      "Body Control Swap: Be moved and positioned like a puppet.",
+      "Edge Pose-Off: Seduce with your stillness while naked.",
+      "Heat Check: Let players test how your body reacts to their touch.",
+      "Erotic Acting Scene: Recreate a hookup moment—slow and hot.",
+      "Tied & Teased: Be restrained and lightly touched all over.",
+      "Moan Game: Make someone moan using only your body language.",
+      "Spin & Strip: Spin a player to undress another.",
+      "Underwear Swap: Trade underwear with someone for 3 rounds.",
+      "Erotic Narrator: Describe a scene involving two other players—but make it sexy."
+    ];
+
+    function getRandomDare() {
+      const randomIndex = Math.floor(Math.random() * dares.length);
+      document.getElementById('dare-text').innerText = dares[randomIndex];
+    }
+  </script>
+</body>
+</html>
