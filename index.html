@@ -1,197 +1,239 @@
+// Main HTML and CSS updates with animations and enhancements based on previous context
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dares or Dares: Neon Rave Edition</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dares or Dares - Neon Rave Edition</title>
   <style>
     body {
       background-color: #0f0f0f;
-      color: #fff;
-      font-family: 'Arial', sans-serif;
+      font-family: 'Orbitron', sans-serif;
+      color: white;
       text-align: center;
       padding: 20px;
     }
     h1 {
-      color: #0ff;
+      color: #f0f;
+      text-shadow: 0 0 10px #f0f, 0 0 20px #0ff;
     }
-    .player-input {
-      margin: 10px;
-    }
-    #game, #scoreboard, #skipHistogram {
-      margin-top: 20px;
-    }
-    button {
+    input, button {
+      font-size: 1rem;
+      padding: 10px;
       margin: 5px;
-      padding: 10px 20px;
       border: none;
       border-radius: 5px;
-      font-size: 16px;
+    }
+    button {
+      background: #222;
+      color: white;
       cursor: pointer;
+      box-shadow: 0 0 10px #00f;
+      transition: all 0.2s ease-in-out;
     }
     button:disabled {
-      opacity: 0.5;
+      background-color: #444;
+      color: #888;
       cursor: not-allowed;
+      box-shadow: none;
     }
-    #nextBtn {
-      background-color: #ff0;
+    button:hover:not(:disabled) {
+      background-color: #333;
+      box-shadow: 0 0 15px #0ff;
     }
-    #acceptBtn {
-      background-color: #0f0;
+    .neon-pulse {
+      animation: pulse 1s infinite;
     }
-    #skipBtn {
-      background-color: #f00;
+    @keyframes pulse {
+      0% { box-shadow: 0 0 10px #0ff; }
+      50% { box-shadow: 0 0 25px #0ff; }
+      100% { box-shadow: 0 0 10px #0ff; }
     }
-    .score-entry {
-      margin: 5px;
+    .dare-card {
+      animation: flip 0.6s ease-in-out;
     }
-    .bar-container {
-      display: flex;
-      justify-content: center;
-      align-items: flex-end;
-      height: 150px;
-      gap: 10px;
-      margin-top: 10px;
+    @keyframes flip {
+      0% { transform: rotateY(0); opacity: 0; }
+      50% { transform: rotateY(90deg); opacity: 0.5; }
+      100% { transform: rotateY(0); opacity: 1; }
     }
-    .bar {
-      background-color: #0ff;
-      width: 30px;
-      text-align: center;
-      color: #000;
-      font-size: 12px;
+    .flash-red {
+      animation: flashRed 0.3s;
     }
-    .bar-label {
-      margin-top: 5px;
+    @keyframes flashRed {
+      0% { background-color: red; }
+      100% { background-color: transparent; }
+    }
+    #scoreboard td.updated {
+      animation: glowUpdate 0.5s ease-in-out;
+    }
+    @keyframes glowUpdate {
+      from { background-color: #111; }
+      to { background-color: #0ff; }
     }
   </style>
 </head>
-
 <body>
-  <h1>🌈 Dares or Dares: Neon Rave Edition 🌈</h1>
-  <div>
-    <input class="player-input" type="text" id="playerName" placeholder="Enter player name" />
+  <h1>🎉 Dares or Dares: Neon Rave 🎉</h1>
+
+  <!-- Player setup + max skips UI -->
+  <div id="setup">
+    <input type="text" id="playerInput" placeholder="Enter player name" />
     <button onclick="addPlayer()">Add Player</button>
-  </div>
-  <div>
-    <input class="player-input" type="number" id="maxSkips" placeholder="Max skips per player" />
+    <input type="number" id="maxSkipsInput" placeholder="Max skips per player" />
     <button onclick="startGame()">Start Game</button>
+    <ul id="playerList"></ul>
   </div>
 
-  <div id="game" style="display: none">
+  <!-- Game controls -->
+  <div id="game" style="display:none;">
     <h2 id="currentPlayer"></h2>
-    <p id="dareText"></p>
-    <button id="nextBtn" onclick="showNextDare()">Next</button>
-    <br />
+    <div id="dareText" class="dare-card"></div>
+    <button id="nextBtn" onclick="nextDare()">Next</button>
     <button id="acceptBtn" onclick="acceptDare()" disabled>Accept</button>
-    <button id="skipBtn" onclick="skipDare()" disabled>Skip (Take a shot)</button>
+    <button id="skipBtn" onclick="skipDare()" disabled>Skip (1 shot)</button>
+
+    <!-- Scoreboard and skips chart -->
+    <canvas id="skipChart" width="400" height="200"></canvas>
+    <table border="1" id="scoreboard">
+      <thead>
+        <tr><th>Player</th><th>Skips</th><th>History</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
   </div>
 
-  <div id="skipHistogram"></div>
-  <div id="scoreboard"></div>
-
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
-    const dares = [
-      "Do a catwalk lap around the room in your underwear",
-      "Give a lap dance to {someone} for 30 seconds",
-      "Kiss {someone} on the lips for 10 seconds",
-      "Do 10 squats while maintaining eye contact with {someone}",
-      "Let {someone} draw something on your chest with a finger",
-      "Exchange shirts with {someone}",
-      "Let {someone} blindfold you and guide you to a random spot",
-      "Grind on {someone} for 20 seconds (with clothes on)",
-      "Whisper a naughty fantasy to {someone}",
-      "Lick any non-private body part of {someone}"
+    let players = [];
+    let maxSkips = 3;
+    let dareIndex = 0;
+    let currentDare = "";
+    let currentPlayerIndex = 0;
+    let dareQueue = [];
+
+    const allDares = [
+      "Do a body shot off someone.",
+      "Exchange clothes with someone.",
+      "Let someone sit on your lap for 3 rounds.",
+      "Grind on someone for 20 seconds.",
+      "Let someone put ice down your underwear.",
+      "Have a staring contest with someone while touching knees.",
+      "Whisper a fantasy into someone's ear.",
+      "Let someone spank you 3 times.",
+      "Play 7 minutes in heaven with someone.",
+      "Let someone draw something on your body with a marker."
     ];
 
-    let players = [];
-    let currentPlayerIndex = 0;
-    let currentDare = "";
-    let gameStarted = false;
-    let maxSkipsAllowed = Infinity;
-    let dareHistory = [];
-
     function addPlayer() {
-      const nameInput = document.getElementById('playerName');
-      const name = nameInput.value.trim();
-      if (name && !players.some(p => p.name === name)) {
-        players.push({ name, score: 0, skips: 0 });
-        nameInput.value = '';
-        updateScoreboard();
-        updateHistogram();
+      const input = document.getElementById("playerInput");
+      const name = input.value.trim();
+      if (name && !players.find(p => p.name === name)) {
+        players.push({ name, skips: 0, history: [] });
+        document.getElementById("playerList").innerHTML += `<li>${name}</li>`;
+        input.value = "";
       }
     }
 
     function startGame() {
-      const skipInput = document.getElementById('maxSkips').value;
-      maxSkipsAllowed = skipInput ? parseInt(skipInput) : Infinity;
-      if (players.length < 2) {
-        alert('At least 2 players needed.');
-        return;
-      }
-      gameStarted = true;
-      document.getElementById('game').style.display = 'block';
-      showNextDare();
+      maxSkips = parseInt(document.getElementById("maxSkipsInput").value) || 3;
+      if (players.length < 2) return alert("At least 2 players needed");
+      dareQueue = [...allDares];
+      shuffle(dareQueue);
+      currentPlayerIndex = 0;
+      document.getElementById("setup").style.display = "none";
+      document.getElementById("game").style.display = "block";
+      updateScoreboard();
+      resetButtons();
     }
 
-    function showNextDare() {
-      document.getElementById('acceptBtn').disabled = false;
-      const currentPlayer = players[currentPlayerIndex];
-      document.getElementById('skipBtn').disabled = currentPlayer.skips >= maxSkipsAllowed;
-      document.getElementById('nextBtn').disabled = true;
+    function nextDare() {
+      if (dareQueue.length === 0) dareQueue = shuffle([...allDares]);
+      currentDare = dareQueue.pop();
+      let darePlayer = players[currentPlayerIndex];
+      let others = players.filter((_, i) => i !== currentPlayerIndex);
+      let someone = others[Math.floor(Math.random() * others.length)].name;
+      currentDare = currentDare.replace("someone", someone);
+      document.getElementById("dareText").innerText = currentDare;
+      document.getElementById("dareText").classList.add("dare-card");
+      document.getElementById("currentPlayer").innerText = `${darePlayer.name}'s turn`;
 
-      document.getElementById('currentPlayer').innerText = `🎲 ${currentPlayer.name}, it's your turn!`;
-      let dare = dares[Math.floor(Math.random() * dares.length)];
-
-      const otherPlayers = players.filter((_, i) => i !== currentPlayerIndex);
-      const someone = otherPlayers[Math.floor(Math.random() * otherPlayers.length)].name;
-      dare = dare.replace('{someone}', someone);
-
-      currentDare = dare;
-      dareHistory.push(`${currentPlayer.name}: ${dare}`);
-      document.getElementById('dareText').innerText = dare;
+      document.getElementById("nextBtn").disabled = true;
+      document.getElementById("acceptBtn").disabled = false;
+      document.getElementById("skipBtn").disabled = darePlayer.skips >= maxSkips;
     }
 
     function acceptDare() {
-      players[currentPlayerIndex].score++;
-      updateScoreboard();
-      moveToNextPlayer();
+      let player = players[currentPlayerIndex];
+      player.history.push(currentDare);
+      nextTurn();
     }
 
     function skipDare() {
-      players[currentPlayerIndex].skips++;
-      updateScoreboard();
-      updateHistogram();
-      moveToNextPlayer();
+      let player = players[currentPlayerIndex];
+      if (player.skips < maxSkips) {
+        player.skips++;
+        player.history.push("SKIPPED: " + currentDare);
+        document.body.classList.add("flash-red");
+        setTimeout(() => document.body.classList.remove("flash-red"), 200);
+      }
+      nextTurn();
     }
 
-    function moveToNextPlayer() {
+    function nextTurn() {
+      updateScoreboard();
+      updateChart();
       currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
-      document.getElementById('acceptBtn').disabled = true;
-      document.getElementById('skipBtn').disabled = true;
-      document.getElementById('nextBtn').disabled = false;
+      resetButtons();
+    }
+
+    function resetButtons() {
+      document.getElementById("dareText").innerText = "";
+      document.getElementById("nextBtn").disabled = false;
+      document.getElementById("acceptBtn").disabled = true;
+      document.getElementById("skipBtn").disabled = true;
     }
 
     function updateScoreboard() {
-      const scoreboard = document.getElementById('scoreboard');
-      scoreboard.innerHTML = '<h2>📊 Scoreboard</h2>' + players.map(p => `
-        <div class="score-entry">${p.name}: ${p.score} accepted, ${p.skips} skips</div>
-      `).join('') + '<h3>📜 Dare History</h3>' + dareHistory.map(d => `<div>${d}</div>`).join('');
+      const tbody = document.querySelector("#scoreboard tbody");
+      tbody.innerHTML = "";
+      players.forEach(p => {
+        const row = document.createElement("tr");
+        row.innerHTML = `<td>${p.name}</td><td>${p.skips}</td><td>${p.history.join("<br>")}</td>`;
+        tbody.appendChild(row);
+      });
     }
 
-    function updateHistogram() {
-      const histogram = document.getElementById('skipHistogram');
-      histogram.innerHTML = '<h2>🥃 Skips Chart</h2><div class="bar-container">' + players.map(p => {
-        const height = p.skips * 20;
-        return `
-          <div>
-            <div class="bar" style="height:${height}px">${p.skips}</div>
-            <div class="bar-label">${p.name}</div>
-          </div>
-        `;
-      }).join('') + '</div>';
+    let chart;
+    function updateChart() {
+      const ctx = document.getElementById("skipChart").getContext("2d");
+      const data = {
+        labels: players.map(p => p.name),
+        datasets: [{
+          label: "Skips",
+          data: players.map(p => p.skips),
+          backgroundColor: "rgba(255, 0, 255, 0.7)",
+        }]
+      };
+      if (chart) chart.destroy();
+      chart = new Chart(ctx, {
+        type: 'bar',
+        data,
+        options: {
+          scales: {
+            y: { beginAtZero: true }
+          }
+        }
+      });
+    }
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
     }
   </script>
 </body>
-
 </html>
