@@ -50,34 +50,43 @@
     <button onclick="getRandomDare()">Next</button>
   </div>
 
-  <script>
-    const dares = [
-      "Erection Duel: Strip and see who gets hard first.",
-      "Lap Grind Interrogation: Sit on someone's lap and ask forbidden questions while grinding.",
-      "Moan Mimic: Recreate your partner’s bedroom noises.",
-      "Frottage Relay: Dry hump someone for 20 seconds.",
-      "Tease Master: Whisper what you'd do to each player, one by one.",
-      "Erotic Hypnosis: Try to turn someone on with just your voice.",
-      "Freeze Frame Fantasy: Pose naked while someone narrates your fantasy.",
-      "Obey Me: Be someone's servant for 3 rounds.",
-      "Mindfuck Strip Poker: One person owns your underwear now.",
-      "Sensory Strip Roulette: Guess the body part brushing against you while blindfolded.",
-      "Dirty Talk Duel: Go head-to-head with someone to say the nastiest things until someone breaks.",
-      "Body Control Swap: Be moved and positioned like a puppet.",
-      "Edge Pose-Off: Seduce with your stillness while naked.",
-      "Heat Check: Let players test how your body reacts to their touch.",
-      "Erotic Acting Scene: Recreate a hookup moment—slow and hot.",
-      "Tied & Teased: Be restrained and lightly touched all over.",
-      "Moan Game: Make someone moan using only your body language.",
-      "Spin & Strip: Spin a player to undress another.",
-      "Underwear Swap: Trade underwear with someone for 3 rounds.",
-      "Erotic Narrator: Describe a scene involving two other players—but make it sexy."
-    ];
+ <script>
+  const originalDares = [
+    "Erection Duel: Strip and see who gets hard first.",
+    "Lap Grind Interrogation: Sit on someone's lap and ask forbidden questions while grinding.",
+    "Moan Mimic: Recreate your partner’s bedroom noises.",
+    "Frottage Relay: Dry hump someone for 20 seconds.",
+    "Tease Master: Whisper what you'd do to each player, one by one.",
+    "Erotic Hypnosis: Try to turn someone on with just your voice.",
+    "Freeze Frame Fantasy: Pose naked while someone narrates your fantasy.",
+    "Obey Me: Be someone's servant for 3 rounds.",
+    "Mindfuck Strip Poker: One person owns your underwear now.",
+    "Sensory Strip Roulette: Guess the body part brushing against you while blindfolded.",
+    "Dirty Talk Duel: Go head-to-head with someone to say the nastiest things until someone breaks.",
+    "Body Control Swap: Be moved and positioned like a puppet.",
+    "Edge Pose-Off: Seduce with your stillness while naked.",
+    "Heat Check: Let players test how your body reacts to their touch.",
+    "Erotic Acting Scene: Recreate a hookup moment—slow and hot.",
+    "Tied & Teased: Be restrained and lightly touched all over.",
+    "Moan Game: Make someone moan using only your body language.",
+    "Spin & Strip: Spin a player to undress another.",
+    "Underwear Swap: Trade underwear with someone for 3 rounds.",
+    "Erotic Narrator: Describe a scene involving two other players—but make it sexy."
+  ];
 
-    function getRandomDare() {
-      const randomIndex = Math.floor(Math.random() * dares.length);
-      document.getElementById('dare-text').innerText = dares[randomIndex];
+  let availableDares = [...originalDares];
+
+  function getRandomDare() {
+    if (availableDares.length === 0) {
+      // All dares used – reset
+      availableDares = [...originalDares];
+      alert("All dares completed! Restarting...");
     }
-  </script>
+
+    const randomIndex = Math.floor(Math.random() * availableDares.length);
+    const dare = availableDares.splice(randomIndex, 1)[0];
+    document.getElementById('dare-text').innerText = dare;
+  }
+</script>
 </body>
 </html>
