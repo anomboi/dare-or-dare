@@ -87,18 +87,19 @@
     <textarea id="player-names" placeholder="Enter player names, one per line"></textarea><br/>
     <input type="number" id="max-skips" placeholder="Max skips per player" /><br/>
     <button onclick="startGame()">Start Game</button>
+    <button onclick="newGame()">New Game</button>
   </div>
 
   <div id="game-area" style="display:none;">
     <div>
       <label>Select dare level:</label>
-      <select id="dareLevel">
+      <select id="dareLevel" onchange="saveGameState()">
         <option value="mild">Mild</option>
         <option value="spicy">Spicy</option>
         <option value="dangerous">Dangerous</option>
       </select>
     </div>
-
+    
     <div class="card" id="dare-card"></div>
 
     <div>
@@ -156,6 +157,7 @@
       updateHistogram();
       updateScoreboard();
       showNextButton();
+      saveGameState();
     }
 
     function nextDare() {
@@ -184,6 +186,7 @@
 
     function acceptDare() {
       nextTurn();
+      saveGameState();
     }
 
     function skipDare() {
@@ -192,11 +195,22 @@
       updateHistogram();
       updateScoreboard();
       nextTurn();
+      saveGameState();
     }
 
     function nextTurn() {
       currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
       showNextButton();
+    }
+
+    function saveGameState() {
+    const dareLevel = document.getElementById("dareLevel").value;
+    const gameState = {
+      players,
+      currentPlayerIndex,
+      dareLevel
+    };
+    localStorage.setItem("dareGameState", JSON.stringify(gameState));
     }
 
     function showNextButton() {
@@ -227,6 +241,31 @@
         board.appendChild(entry);
       });
     }
+
+function loadGameState() {
+    const saved = localStorage.getItem("dareGameState");
+    if (!saved) return;
+
+    const { players: savedPlayers, currentPlayerIndex: savedIndex, dareLevel } = JSON.parse(saved);
+    players = savedPlayers;
+    currentPlayerIndex = savedIndex;
+    document.getElementById("dareLevel").value = dareLevel;
+    document.getElementById("game-area").style.display = "block";
+    updatePlayerDisplay();
+  }
+
+  function newGame() {
+    localStorage.removeItem("dareGameState");
+    players = [];
+    currentPlayerIndex = 0;
+    document.getElementById("playerInput").value = "";
+    document.getElementById("dareDisplay").innerText = "";
+    document.getElementById("currentPlayer").innerText = "";
+    document.getElementById("game-area").style.display = "none";
+  }
+
+  window.addEventListener("DOMContentLoaded", loadGameState);
+    
   </script>
 
 <h2>Dare History</h2>
