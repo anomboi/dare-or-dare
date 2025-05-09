@@ -46,12 +46,23 @@
     .score-entry {
       margin: 5px;
     }
+    .bar-container {
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      height: 150px;
+      gap: 10px;
+      margin-top: 10px;
+    }
     .bar {
       background-color: #0ff;
-      height: 20px;
-      margin: 5px;
-      text-align: left;
+      width: 30px;
+      text-align: center;
       color: #000;
+      font-size: 12px;
+    }
+    .bar-label {
+      margin-top: 5px;
     }
   </style>
 </head>
@@ -61,6 +72,9 @@
   <div>
     <input class="player-input" type="text" id="playerName" placeholder="Enter player name" />
     <button onclick="addPlayer()">Add Player</button>
+  </div>
+  <div>
+    <input class="player-input" type="number" id="maxSkips" placeholder="Max skips per player" />
     <button onclick="startGame()">Start Game</button>
   </div>
 
@@ -94,6 +108,8 @@
     let currentPlayerIndex = 0;
     let currentDare = "";
     let gameStarted = false;
+    let maxSkipsAllowed = Infinity;
+    let dareHistory = [];
 
     function addPlayer() {
       const nameInput = document.getElementById('playerName');
@@ -107,6 +123,8 @@
     }
 
     function startGame() {
+      const skipInput = document.getElementById('maxSkips').value;
+      maxSkipsAllowed = skipInput ? parseInt(skipInput) : Infinity;
       if (players.length < 2) {
         alert('At least 2 players needed.');
         return;
@@ -118,11 +136,11 @@
 
     function showNextDare() {
       document.getElementById('acceptBtn').disabled = false;
-      document.getElementById('skipBtn').disabled = false;
+      const currentPlayer = players[currentPlayerIndex];
+      document.getElementById('skipBtn').disabled = currentPlayer.skips >= maxSkipsAllowed;
       document.getElementById('nextBtn').disabled = true;
 
-      const player = players[currentPlayerIndex];
-      document.getElementById('currentPlayer').innerText = `🎲 ${player.name}, it's your turn!`;
+      document.getElementById('currentPlayer').innerText = `🎲 ${currentPlayer.name}, it's your turn!`;
       let dare = dares[Math.floor(Math.random() * dares.length)];
 
       const otherPlayers = players.filter((_, i) => i !== currentPlayerIndex);
@@ -130,6 +148,7 @@
       dare = dare.replace('{someone}', someone);
 
       currentDare = dare;
+      dareHistory.push(`${currentPlayer.name}: ${dare}`);
       document.getElementById('dareText').innerText = dare;
     }
 
@@ -157,15 +176,20 @@
       const scoreboard = document.getElementById('scoreboard');
       scoreboard.innerHTML = '<h2>📊 Scoreboard</h2>' + players.map(p => `
         <div class="score-entry">${p.name}: ${p.score} accepted, ${p.skips} skips</div>
-      `).join('');
+      `).join('') + '<h3>📜 Dare History</h3>' + dareHistory.map(d => `<div>${d}</div>`).join('');
     }
 
     function updateHistogram() {
       const histogram = document.getElementById('skipHistogram');
-      histogram.innerHTML = '<h2>🥃 Skip Histogram</h2>' + players.map(p => {
-        const width = p.skips * 20;
-        return `<div><strong>${p.name}</strong><div class="bar" style="width:${width}px">${p.skips}</div></div>`;
-      }).join('');
+      histogram.innerHTML = '<h2>🥃 Skips Chart</h2><div class="bar-container">' + players.map(p => {
+        const height = p.skips * 20;
+        return `
+          <div>
+            <div class="bar" style="height:${height}px">${p.skips}</div>
+            <div class="bar-label">${p.name}</div>
+          </div>
+        `;
+      }).join('') + '</div>';
     }
   </script>
 </body>
