@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dare or Dare</title>
+  <title>Neon Rave Gay Dares</title>
   <style>
     body {
       background-color: #0f0f0f;
@@ -31,9 +31,15 @@
       border-radius: 5px;
       box-shadow: 0 0 10px #00ffff;
     }
-    button:hover {
+    button:hover:enabled {
       background-color: #ff00ff;
       box-shadow: 0 0 15px #ff00ff;
+    }
+    button:disabled {
+      background-color: #444;
+      color: #888;
+      cursor: not-allowed;
+      box-shadow: none;
     }
     #game-section, #scoreboard {
       display: none;
@@ -49,11 +55,11 @@
   </style>
 </head>
 <body>
-  <h1>Dare or Dare</h1>
+  <h1>Neon Rave: Gay Dares Game</h1>
 
   <div id="player-setup">
     <p>Enter player names (separated by commas):</p>
-    <input type="text" id="player-names" placeholder="e.g. player 1, player 2, player 3" size="40">
+    <input type="text" id="player-names" placeholder="e.g. Dan, Skippy, Ben" size="40">
     <br>
     <button onclick="startGame()">Start Game</button>
   </div>
@@ -61,9 +67,10 @@
   <div id="game-section">
     <h2><span id="current-player"></span>'s turn</h2>
     <p id="dare-text">Click next to get your dare</p>
-    <button onclick="showDare()">Reveal Dare</button>
-    <button onclick="acceptDare()">Accept</button>
-    <button onclick="skipDare()">Skip (Drink!)</button>
+    <button id="next-button" onclick="showDare()">Next</button>
+    <br>
+    <button id="accept-button" onclick="acceptDare()" disabled>Accept</button>
+    <button id="skip-button" onclick="skipDare()" disabled>Skip (Drink!)</button>
   </div>
 
   <div id="scoreboard">
@@ -117,6 +124,11 @@
       const targetPlayer = getRandomOtherPlayer();
       currentDare = rawDare.replace(/someone|somebody/gi, targetPlayer);
       document.getElementById('dare-text').innerText = currentDare;
+
+      // Button control
+      document.getElementById('next-button').disabled = true;
+      document.getElementById('accept-button').disabled = false;
+      document.getElementById('skip-button').disabled = false;
     }
 
     function getRandomOtherPlayer() {
@@ -142,6 +154,11 @@
       currentDare = '';
       document.getElementById('dare-text').innerText = "Click next to get your dare";
       updateCurrentPlayerDisplay();
+
+      // Button control
+      document.getElementById('next-button').disabled = false;
+      document.getElementById('accept-button').disabled = true;
+      document.getElementById('skip-button').disabled = true;
     }
 
     function updateCurrentPlayerDisplay() {
