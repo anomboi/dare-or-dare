@@ -110,13 +110,10 @@
     <h2>Skip Histogram</h2>
     <div id="histogram"></div>
 
-    
+    <h2>Scoreboard</h2>
     <div id="scoreboard"></div>
   </div>
 
-  <button onclick="resetGame()">New Game</button>
-
-  
   <script>
     const dareBanks = {
       mild: [
@@ -149,70 +146,18 @@
     let skips = {};
     let maxSkips = 0;
 
-  function startGame() {
-  const playerInput = document.getElementById("playerNames").value;
-  players = playerInput.split(",").map(name => name.trim()).filter(name => name !== "");
-  currentPlayerIndex = 0;
-  skips = {};
-  maxSkips = parseInt(document.getElementById("maxSkips").value, 10) || 0;
+    function startGame() {
+      players = document.getElementById("player-names").value.trim().split("\n").filter(p => p);
+      maxSkips = parseInt(document.getElementById("max-skips").value);
+      players.forEach(p => skips[p] = 0);
+      document.getElementById("player-setup").style.display = 'none';
+      document.getElementById("game-area").style.display = 'block';
+      Object.keys(dareBanks).forEach(level => allDares[level] = [...dareBanks[level]]);
+      updateHistogram();
+      updateScoreboard();
+      showNextButton();
+    }
 
-  const dareLevel = document.getElementById("dareLevel").value;
-  const dareList = dareBanks[dareLevel];
-  allDares[dareLevel] = [...dareList];
-  usedDares[dareLevel] = new Set();
-
-  players.forEach(p => (skips[p] = 0));
-  saveGameState();
-  nextDare();
-}
-
-
-    function saveGameState() {
-  const dareLevel = document.getElementById("dareLevel")?.value || "mild";
-  const state = {
-    players,
-    currentPlayerIndex,
-    skips,
-    maxSkips,
-    dareLevel,
-    usedDares: {
-      mild: Array.from(usedDares.mild),
-      spicy: Array.from(usedDares.spicy),
-      dangerous: Array.from(usedDares.dangerous),
-    },
-  };
-  localStorage.setItem("gameState", JSON.stringify(state));
-}
-
-function loadGameState() {
-  const stateStr = localStorage.getItem("gameState");
-  if (!stateStr) return;
-
-  try {
-    const state = JSON.parse(stateStr);
-    players = state.players || [];
-    currentPlayerIndex = state.currentPlayerIndex || 0;
-    skips = state.skips || {};
-    maxSkips = state.maxSkips || 0;
-
-    document.getElementById("playerNames").value = players.join(", ");
-    document.getElementById("maxSkips").value = maxSkips;
-    document.getElementById("dareLevel").value = state.dareLevel || "mild";
-
-    usedDares = {
-      mild: new Set(state.usedDares?.mild || []),
-      spicy: new Set(state.usedDares?.spicy || []),
-      dangerous: new Set(state.usedDares?.dangerous || []),
-    };
-
-    const dareList = dareBanks[state.dareLevel];
-    allDares[state.dareLevel] = [...dareList];
-  } catch (e) {
-    console.error("Failed to load game state:", e);
-  }
-}
-
-    
     function nextDare() {
       const dareLevel = document.getElementById("dareLevel").value;
       const player = players[currentPlayerIndex];
@@ -238,17 +183,12 @@ function loadGameState() {
     }
 
     function acceptDare() {
-      currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
-      saveGameState();
       nextTurn();
     }
 
     function skipDare() {
       const player = players[currentPlayerIndex];
       if (skips[player] < maxSkips) skips[player]++;
-      skips[player] = (skips[player] || 0) + 1;
-      currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
-      saveGameState();
       updateHistogram();
       updateScoreboard();
       nextTurn();
@@ -289,14 +229,6 @@ function loadGameState() {
     }
   </script>
 
-window.onload = () => {
-  loadGameState();
-  updateDareHistory();
-  if (players.length > 0) {
-    nextDare();
-  }
-};
-  
 <h2>Dare History</h2>
 <div id="dare-history" style="
   max-width: 600px;
@@ -351,32 +283,6 @@ window.onload = () => {
       .map(entry => `<div style="margin-bottom: 5px; text-shadow: 0 0 8px #0ff;">${entry}</div>`)
       .join('');
   }
-
-  function resetGame() {
-  if (confirm("Are you sure you want to start a new game? All progress will be lost.")) {
-    // Clear variables
-    players = [];
-    currentPlayerIndex = 0;
-    skips = {};
-    maxSkips = 0;
-    usedDares = {
-      mild: new Set(),
-      spicy: new Set(),
-      dangerous: new Set(),
-    };
-    // Clear localStorage
-    localStorage.removeItem("gameState");
-
-    // Reset UI
-    document.getElementById("playerNames").value = "";
-    document.getElementById("maxSkips").value = "";
-    document.getElementById("dareLevel").value = "mild";
-    document.getElementById("dareDisplay").innerText = "";
-    document.getElementById("playerTurn").innerText = "";
-    document.getElementById("skipCount").innerText = "";
-    document.getElementById("dareHistory").innerHTML = "";
-  }
-}
 </script>
 </body>
 </html>
