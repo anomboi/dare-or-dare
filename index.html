@@ -1,181 +1,173 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Neon Rave Gay Dares</title>
+  <title>Dares or Dares: Neon Rave Edition</title>
   <style>
     body {
       background-color: #0f0f0f;
+      color: #fff;
       font-family: 'Arial', sans-serif;
-      color: #f0f0f0;
       text-align: center;
       padding: 20px;
     }
     h1 {
-      color: #ff00ff;
-      text-shadow: 0 0 5px #ff00ff, 0 0 10px #ff00ff;
+      color: #0ff;
     }
-    #player-form input {
-      padding: 10px;
-      margin: 5px;
+    .player-input {
+      margin: 10px;
+    }
+    #game, #scoreboard, #skipHistogram {
+      margin-top: 20px;
     }
     button {
-      background-color: #00ffff;
-      color: #000;
-      border: none;
+      margin: 5px;
       padding: 10px 20px;
-      margin: 10px;
-      cursor: pointer;
-      font-size: 1rem;
+      border: none;
       border-radius: 5px;
-      box-shadow: 0 0 10px #00ffff;
-    }
-    button:hover:enabled {
-      background-color: #ff00ff;
-      box-shadow: 0 0 15px #ff00ff;
+      font-size: 16px;
+      cursor: pointer;
     }
     button:disabled {
-      background-color: #444;
-      color: #888;
+      opacity: 0.5;
       cursor: not-allowed;
-      box-shadow: none;
     }
-    #game-section, #scoreboard {
-      display: none;
+    #nextBtn {
+      background-color: #ff0;
+    }
+    #acceptBtn {
+      background-color: #0f0;
+    }
+    #skipBtn {
+      background-color: #f00;
     }
     .score-entry {
-      margin: 5px 0;
-      border-bottom: 1px solid #555;
+      margin: 5px;
     }
-    .player-highlight {
-      color: #00ffff;
-      font-weight: bold;
+    .bar {
+      background-color: #0ff;
+      height: 20px;
+      margin: 5px;
+      text-align: left;
+      color: #000;
     }
   </style>
 </head>
-<body>
-  <h1>Neon Rave: Gay Dares Game</h1>
 
-  <div id="player-setup">
-    <p>Enter player names (separated by commas):</p>
-    <input type="text" id="player-names" placeholder="e.g. Dan, Skippy, Ben" size="40">
-    <br>
+<body>
+  <h1>🌈 Dares or Dares: Neon Rave Edition 🌈</h1>
+  <div>
+    <input class="player-input" type="text" id="playerName" placeholder="Enter player name" />
+    <button onclick="addPlayer()">Add Player</button>
     <button onclick="startGame()">Start Game</button>
   </div>
 
-  <div id="game-section">
-    <h2><span id="current-player"></span>'s turn</h2>
-    <p id="dare-text">Click next to get your dare</p>
-    <button id="next-button" onclick="showDare()">Next</button>
-    <br>
-    <button id="accept-button" onclick="acceptDare()" disabled>Accept</button>
-    <button id="skip-button" onclick="skipDare()" disabled>Skip (Drink!)</button>
+  <div id="game" style="display: none">
+    <h2 id="currentPlayer"></h2>
+    <p id="dareText"></p>
+    <button id="nextBtn" onclick="showNextDare()">Next</button>
+    <br />
+    <button id="acceptBtn" onclick="acceptDare()" disabled>Accept</button>
+    <button id="skipBtn" onclick="skipDare()" disabled>Skip (Take a shot)</button>
   </div>
 
-  <div id="scoreboard">
-    <h3>Scoreboard</h3>
-    <div id="scores"></div>
-  </div>
+  <div id="skipHistogram"></div>
+  <div id="scoreboard"></div>
 
   <script>
-    const originalDares = [
-      "Erection Duel: Strip and see who gets hard first with someone. 🍆",
-      "Lap Grind Interrogation: Sit on someone's lap and ask forbidden questions while grinding. 💥",
-      "Moan Mimic: Recreate bedroom noises of someone. 😜",
-      "Frottage Relay: Dry hump someone for 20 seconds. 😍",
-      "Tease Master: Whisper what you'd do to someone. 👀",
-      "Erotic Hypnosis: Try to turn someone on with just your voice. 🔮",
-      "Freeze Frame Fantasy: Pose naked while someone narrates your fantasy. 🎨",
-      "Obey Me: Be someone’s servant for 3 rounds. 🛡",
-      "Mindfuck Strip Poker: One person owns your underwear now—someone decides. 💰",
-      "Underwear Swap: Trade undies with someone for 3 rounds. 👙"
+    const dares = [
+      "Do a catwalk lap around the room in your underwear",
+      "Give a lap dance to {someone} for 30 seconds",
+      "Kiss {someone} on the lips for 10 seconds",
+      "Do 10 squats while maintaining eye contact with {someone}",
+      "Let {someone} draw something on your chest with a finger",
+      "Exchange shirts with {someone}",
+      "Let {someone} blindfold you and guide you to a random spot",
+      "Grind on {someone} for 20 seconds (with clothes on)",
+      "Whisper a naughty fantasy to {someone}",
+      "Lick any non-private body part of {someone}"
     ];
 
     let players = [];
     let currentPlayerIndex = 0;
-    let availableDares = [];
-    let scores = [];
-    let currentDare = '';
+    let currentDare = "";
+    let gameStarted = false;
+
+    function addPlayer() {
+      const nameInput = document.getElementById('playerName');
+      const name = nameInput.value.trim();
+      if (name && !players.some(p => p.name === name)) {
+        players.push({ name, score: 0, skips: 0 });
+        nameInput.value = '';
+        updateScoreboard();
+        updateHistogram();
+      }
+    }
 
     function startGame() {
-      const names = document.getElementById('player-names').value.trim();
-      if (!names) return alert("Enter at least one name!");
-
-      players = names.split(',').map(n => n.trim()).filter(n => n);
-      scores = players.map(p => ({ name: p, dares: [] }));
-      availableDares = [...originalDares];
-      currentPlayerIndex = 0;
-
-      document.getElementById('player-setup').style.display = 'none';
-      document.getElementById('game-section').style.display = 'block';
-      document.getElementById('scoreboard').style.display = 'block';
-      updateCurrentPlayerDisplay();
-      document.getElementById('dare-text').innerText = "Click next to get your dare";
-    }
-
-    function showDare() {
-      if (availableDares.length === 0) {
-        availableDares = [...originalDares];
-        alert("All dares completed! Restarting deck...");
+      if (players.length < 2) {
+        alert('At least 2 players needed.');
+        return;
       }
-      const dareIndex = Math.floor(Math.random() * availableDares.length);
-      let rawDare = availableDares.splice(dareIndex, 1)[0];
-      const targetPlayer = getRandomOtherPlayer();
-      currentDare = rawDare.replace(/someone|somebody/gi, targetPlayer);
-      document.getElementById('dare-text').innerText = currentDare;
-
-      // Button control
-      document.getElementById('next-button').disabled = true;
-      document.getElementById('accept-button').disabled = false;
-      document.getElementById('skip-button').disabled = false;
+      gameStarted = true;
+      document.getElementById('game').style.display = 'block';
+      showNextDare();
     }
 
-    function getRandomOtherPlayer() {
-      const others = players.filter((_, i) => i !== currentPlayerIndex);
-      return others[Math.floor(Math.random() * others.length)];
+    function showNextDare() {
+      document.getElementById('acceptBtn').disabled = false;
+      document.getElementById('skipBtn').disabled = false;
+      document.getElementById('nextBtn').disabled = true;
+
+      const player = players[currentPlayerIndex];
+      document.getElementById('currentPlayer').innerText = `🎲 ${player.name}, it's your turn!`;
+      let dare = dares[Math.floor(Math.random() * dares.length)];
+
+      const otherPlayers = players.filter((_, i) => i !== currentPlayerIndex);
+      const someone = otherPlayers[Math.floor(Math.random() * otherPlayers.length)].name;
+      dare = dare.replace('{someone}', someone);
+
+      currentDare = dare;
+      document.getElementById('dareText').innerText = dare;
     }
 
     function acceptDare() {
-      scores[currentPlayerIndex].dares.push(currentDare);
+      players[currentPlayerIndex].score++;
       updateScoreboard();
-      nextTurn();
+      moveToNextPlayer();
     }
 
     function skipDare() {
-      const penalty = "Skipped dare: " + currentDare + " 🍷 Take a shot!";
-      scores[currentPlayerIndex].dares.push(penalty);
+      players[currentPlayerIndex].skips++;
       updateScoreboard();
-      nextTurn();
+      updateHistogram();
+      moveToNextPlayer();
     }
 
-    function nextTurn() {
+    function moveToNextPlayer() {
       currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
-      currentDare = '';
-      document.getElementById('dare-text').innerText = "Click next to get your dare";
-      updateCurrentPlayerDisplay();
-
-      // Button control
-      document.getElementById('next-button').disabled = false;
-      document.getElementById('accept-button').disabled = true;
-      document.getElementById('skip-button').disabled = true;
-    }
-
-    function updateCurrentPlayerDisplay() {
-      document.getElementById('current-player').innerText = players[currentPlayerIndex];
+      document.getElementById('acceptBtn').disabled = true;
+      document.getElementById('skipBtn').disabled = true;
+      document.getElementById('nextBtn').disabled = false;
     }
 
     function updateScoreboard() {
-      const scoreContainer = document.getElementById('scores');
-      scoreContainer.innerHTML = '';
+      const scoreboard = document.getElementById('scoreboard');
+      scoreboard.innerHTML = '<h2>📊 Scoreboard</h2>' + players.map(p => `
+        <div class="score-entry">${p.name}: ${p.score} accepted, ${p.skips} skips</div>
+      `).join('');
+    }
 
-      scores.forEach(player => {
-        const div = document.createElement('div');
-        div.classList.add('score-entry');
-        div.innerHTML = `<strong class="player-highlight">${player.name}</strong><br>${player.dares.join('<br>')}`;
-        scoreContainer.appendChild(div);
-      });
+    function updateHistogram() {
+      const histogram = document.getElementById('skipHistogram');
+      histogram.innerHTML = '<h2>🥃 Skip Histogram</h2>' + players.map(p => {
+        const width = p.skips * 20;
+        return `<div><strong>${p.name}</strong><div class="bar" style="width:${width}px">${p.skips}</div></div>`;
+      }).join('');
     }
   </script>
 </body>
+
 </html>
