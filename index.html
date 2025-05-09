@@ -228,5 +228,49 @@
       });
     }
   </script>
+
+<h2>Dare History</h2>
+<div id="dare-history" style="max-width: 600px; margin: 1rem auto; text-align: left;">
+</div>
+
+<script>
+  const dareHistory = [];
+
+  function nextDare() {
+    const dareLevel = document.getElementById("dareLevel").value;
+    const player = players[currentPlayerIndex];
+    const dareList = allDares[dareLevel];
+
+    if (usedDares[dareLevel].size >= dareList.length) usedDares[dareLevel].clear();
+
+    let newDare;
+    do {
+      newDare = dareList[Math.floor(Math.random() * dareList.length)];
+    } while (usedDares[dareLevel].has(newDare));
+    usedDares[dareLevel].add(newDare);
+
+    const otherPlayers = players.filter(p => p !== player);
+    const randomTarget = otherPlayers[Math.floor(Math.random() * otherPlayers.length)];
+    const personalizedDare = newDare.replace(/someone/g, randomTarget);
+
+    document.getElementById("dare-card").innerText = `${player}, your dare: ${personalizedDare}`;
+
+    // Log dare history
+    dareHistory.push(`${player} ➜ ${personalizedDare}`);
+    updateDareHistory();
+
+    document.getElementById("nextBtn").disabled = true;
+    document.getElementById("acceptBtn").disabled = false;
+    document.getElementById("skipBtn").disabled = skips[player] >= maxSkips;
+  }
+
+  function updateDareHistory() {
+    const historyDiv = document.getElementById("dare-history");
+    historyDiv.innerHTML = dareHistory
+      .slice(-10)  // Show last 10 dares
+      .map((entry, i) => `<div style="margin-bottom: 5px; color: #fff; text-shadow: 0 0 8px #0ff;">${entry}</div>`)
+      .join('');
+  }
+</script>
 </body>
 </html>
