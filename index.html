@@ -1,8 +1,9 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Neon Rave Gay Dares</title>
+  <title>Dare or Dare</title>
   <style>
     body {
       background-color: #0f0f0f;
@@ -48,20 +49,29 @@
   </style>
 </head>
 <body>
-  <h1>Neon Rave: Gay Dares Game</h1>  <div id="player-setup">
+  <h1>Neon Rave: Gay Dares Game</h1>
+
+  <div id="player-setup">
     <p>Enter player names (separated by commas):</p>
-    <input type="text" id="player-names" placeholder="e.g. Dan, Skippy, Ben" size="40">
+    <input type="text" id="player-names" placeholder="e.g. A, B, C" size="40">
     <br>
     <button onclick="startGame()">Start Game</button>
-  </div>  <div id="game-section">
+  </div>
+
+  <div id="game-section">
     <h2><span id="current-player"></span>'s turn</h2>
     <p id="dare-text">Click next to get your dare</p>
-    <button onclick="getNextDare()">Next Dare</button>
+    <button onclick="showDare()">Reveal Dare</button>
+    <button onclick="acceptDare()">Accept</button>
     <button onclick="skipDare()">Skip (Drink!)</button>
-  </div>  <div id="scoreboard">
+  </div>
+
+  <div id="scoreboard">
     <h3>Scoreboard</h3>
     <div id="scores"></div>
-  </div>  <script>
+  </div>
+
+  <script>
     const originalDares = [
       "Erection Duel: Strip and see who gets hard first. 🍆",
       "Lap Grind Interrogation: Sit on someone's lap and ask forbidden questions while grinding. 💥",
@@ -79,6 +89,7 @@
     let currentPlayerIndex = 0;
     let availableDares = [];
     let scores = [];
+    let currentDare = '';
 
     function startGame() {
       const names = document.getElementById('player-names').value.trim();
@@ -92,40 +103,44 @@
       document.getElementById('player-setup').style.display = 'none';
       document.getElementById('game-section').style.display = 'block';
       document.getElementById('scoreboard').style.display = 'block';
-      updateScoreboard();
-      getNextDare();
+      updateCurrentPlayerDisplay();
+      document.getElementById('dare-text').innerText = "Click next to get your dare";
     }
 
-    function getNextDare() {
+    function showDare() {
       if (availableDares.length === 0) {
         availableDares = [...originalDares];
         alert("All dares completed! Restarting deck...");
       }
-
       const dareIndex = Math.floor(Math.random() * availableDares.length);
-      const dare = availableDares.splice(dareIndex, 1)[0];
+      currentDare = availableDares.splice(dareIndex, 1)[0];
+      document.getElementById('dare-text').innerText = currentDare;
+    }
 
+    function acceptDare() {
       const player = players[currentPlayerIndex];
-      document.getElementById('current-player').innerText = player;
-      document.getElementById('dare-text').innerText = dare;
-
-      scores[currentPlayerIndex].dares.push(dare);
+      scores[currentPlayerIndex].dares.push(currentDare);
       updateScoreboard();
-
-      currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+      nextTurn();
     }
 
     function skipDare() {
       const player = players[currentPlayerIndex];
-      const penalty = "Skipped! 🍷 Take a shot!";
-
+      const penalty = "Skipped dare: " + currentDare + " 🍷 Take a shot!";
       scores[currentPlayerIndex].dares.push(penalty);
       updateScoreboard();
+      nextTurn();
+    }
 
-      document.getElementById('current-player').innerText = player;
-      document.getElementById('dare-text').innerText = penalty;
-
+    function nextTurn() {
       currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+      currentDare = '';
+      document.getElementById('dare-text').innerText = "Click next to get your dare";
+      updateCurrentPlayerDisplay();
+    }
+
+    function updateCurrentPlayerDisplay() {
+      document.getElementById('current-player').innerText = players[currentPlayerIndex];
     }
 
     function updateScoreboard() {
@@ -139,5 +154,6 @@
         scoreContainer.appendChild(div);
       });
     }
-  </script></body>
+  </script>
+</body>
 </html>
