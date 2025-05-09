@@ -1,92 +1,143 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dare or Dare</title>
   <style>
     body {
+      background-color: #0f0f0f;
       font-family: 'Arial', sans-serif;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
+      color: #f0f0f0;
       text-align: center;
-      height: 100vh;
-      margin: 0;
-      background: linear-gradient(135deg, #ffe4ec, #ffe7cc);
-      color: #333;
+      padding: 20px;
     }
     h1 {
-      font-size: 2.5em;
-      margin-bottom: 0.5em;
+      color: #ff00ff;
+      text-shadow: 0 0 5px #ff00ff, 0 0 10px #ff00ff;
     }
-    #dare-box {
-      background: white;
-      padding: 2em;
-      border-radius: 20px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-      max-width: 500px;
+    #player-form input {
+      padding: 10px;
+      margin: 5px;
     }
     button {
-      padding: 0.8em 2em;
-      font-size: 1em;
+      background-color: #00ffff;
+      color: #000;
       border: none;
-      border-radius: 30px;
-      background: #ff69b4;
-      color: white;
+      padding: 10px 20px;
+      margin: 10px;
       cursor: pointer;
-      margin-top: 1em;
+      font-size: 1rem;
+      border-radius: 5px;
+      box-shadow: 0 0 10px #00ffff;
     }
     button:hover {
-      background: #e155a5;
+      background-color: #ff00ff;
+      box-shadow: 0 0 15px #ff00ff;
+    }
+    #game-section, #scoreboard {
+      display: none;
+    }
+    .score-entry {
+      margin: 5px 0;
+      border-bottom: 1px solid #555;
+    }
+    .player-highlight {
+      color: #00ffff;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
-  <h1>Dare or Dare</h1>
-  <div id="dare-box">
-    <p id="dare-text">Click below to get your dare...</p>
-    <button onclick="getRandomDare()">Next</button>
-  </div>
+  <h1>Neon Rave: Gay Dares Game</h1>  <div id="player-setup">
+    <p>Enter player names (separated by commas):</p>
+    <input type="text" id="player-names" placeholder="e.g. Dan, Skippy, Ben" size="40">
+    <br>
+    <button onclick="startGame()">Start Game</button>
+  </div>  <div id="game-section">
+    <h2><span id="current-player"></span>'s turn</h2>
+    <p id="dare-text">Click next to get your dare</p>
+    <button onclick="getNextDare()">Next Dare</button>
+    <button onclick="skipDare()">Skip (Drink!)</button>
+  </div>  <div id="scoreboard">
+    <h3>Scoreboard</h3>
+    <div id="scores"></div>
+  </div>  <script>
+    const originalDares = [
+      "Erection Duel: Strip and see who gets hard first. 🍆",
+      "Lap Grind Interrogation: Sit on someone's lap and ask forbidden questions while grinding. 💥",
+      "Moan Mimic: Recreate your partner’s bedroom noises. 😜",
+      "Frottage Relay: Dry hump someone for 20 seconds. 😍",
+      "Tease Master: Whisper what you'd do to each player. 👀",
+      "Erotic Hypnosis: Try to turn someone on with just your voice. 🔮",
+      "Freeze Frame Fantasy: Pose naked while someone narrates your fantasy. 🎨",
+      "Obey Me: Be someone's servant for 3 rounds. 🛡",
+      "Mindfuck Strip Poker: One person owns your underwear now. 💰",
+      "Underwear Swap: Trade undies with someone for 3 rounds. 👙"
+    ];
 
- <script>
-  const originalDares = [
-    "Erection Duel: Strip and see who gets hard first.",
-    "Lap Grind Interrogation: Sit on someone's lap and ask forbidden questions while grinding.",
-    "Moan Mimic: Recreate your partner’s bedroom noises.",
-    "Frottage Relay: Dry hump someone for 20 seconds.",
-    "Tease Master: Whisper what you'd do to each player, one by one.",
-    "Erotic Hypnosis: Try to turn someone on with just your voice.",
-    "Freeze Frame Fantasy: Pose naked while someone narrates your fantasy.",
-    "Obey Me: Be someone's servant for 3 rounds.",
-    "Mindfuck Strip Poker: One person owns your underwear now.",
-    "Sensory Strip Roulette: Guess the body part brushing against you while blindfolded.",
-    "Dirty Talk Duel: Go head-to-head with someone to say the nastiest things until someone breaks.",
-    "Body Control Swap: Be moved and positioned like a puppet.",
-    "Edge Pose-Off: Seduce with your stillness while naked.",
-    "Heat Check: Let players test how your body reacts to their touch.",
-    "Erotic Acting Scene: Recreate a hookup moment—slow and hot.",
-    "Tied & Teased: Be restrained and lightly touched all over.",
-    "Moan Game: Make someone moan using only your body language.",
-    "Spin & Strip: Spin a player to undress another.",
-    "Underwear Swap: Trade underwear with someone for 3 rounds.",
-    "Erotic Narrator: Describe a scene involving two other players—but make it sexy."
-  ];
+    let players = [];
+    let currentPlayerIndex = 0;
+    let availableDares = [];
+    let scores = [];
 
-  let availableDares = [...originalDares];
+    function startGame() {
+      const names = document.getElementById('player-names').value.trim();
+      if (!names) return alert("Enter at least one name!");
 
-  function getRandomDare() {
-    if (availableDares.length === 0) {
-      // All dares used – reset
+      players = names.split(',').map(n => n.trim()).filter(n => n);
+      scores = players.map(p => ({ name: p, dares: [] }));
       availableDares = [...originalDares];
-      alert("All dares completed! Restarting...");
+      currentPlayerIndex = 0;
+
+      document.getElementById('player-setup').style.display = 'none';
+      document.getElementById('game-section').style.display = 'block';
+      document.getElementById('scoreboard').style.display = 'block';
+      updateScoreboard();
+      getNextDare();
     }
 
-    const randomIndex = Math.floor(Math.random() * availableDares.length);
-    const dare = availableDares.splice(randomIndex, 1)[0];
-    document.getElementById('dare-text').innerText = dare;
-  }
-</script>
-</body>
+    function getNextDare() {
+      if (availableDares.length === 0) {
+        availableDares = [...originalDares];
+        alert("All dares completed! Restarting deck...");
+      }
+
+      const dareIndex = Math.floor(Math.random() * availableDares.length);
+      const dare = availableDares.splice(dareIndex, 1)[0];
+
+      const player = players[currentPlayerIndex];
+      document.getElementById('current-player').innerText = player;
+      document.getElementById('dare-text').innerText = dare;
+
+      scores[currentPlayerIndex].dares.push(dare);
+      updateScoreboard();
+
+      currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+    }
+
+    function skipDare() {
+      const player = players[currentPlayerIndex];
+      const penalty = "Skipped! 🍷 Take a shot!";
+
+      scores[currentPlayerIndex].dares.push(penalty);
+      updateScoreboard();
+
+      document.getElementById('current-player').innerText = player;
+      document.getElementById('dare-text').innerText = penalty;
+
+      currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+    }
+
+    function updateScoreboard() {
+      const scoreContainer = document.getElementById('scores');
+      scoreContainer.innerHTML = '';
+
+      scores.forEach(player => {
+        const div = document.createElement('div');
+        div.classList.add('score-entry');
+        div.innerHTML = `<strong class="player-highlight">${player.name}</strong><br>${player.dares.join('<br>')}`;
+        scoreContainer.appendChild(div);
+      });
+    }
+  </script></body>
 </html>
