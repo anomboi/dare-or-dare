@@ -230,7 +230,20 @@
   </script>
 
 <h2>Dare History</h2>
-<div id="dare-history" style="max-width: 600px; margin: 1rem auto; text-align: left;">
+<div id="dare-history" style="
+  max-width: 600px;
+  margin: 1rem auto;
+  text-align: left;
+  max-height: 300px;
+  overflow-y: auto;
+  border: 2px solid #0ff;
+  padding: 1rem;
+  border-radius: 10px;
+  background-color: rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 20px #0ff;
+  color: #fff;
+  font-family: 'Orbitron', sans-serif;
+">
 </div>
 
 <script>
@@ -267,8 +280,7 @@
   function updateDareHistory() {
     const historyDiv = document.getElementById("dare-history");
     historyDiv.innerHTML = dareHistory
-      .slice(-10)  // Show last 10 dares
-      .map((entry, i) => `<div style="margin-bottom: 5px; color: #fff; text-shadow: 0 0 8px #0ff;">${entry}</div>`)
+      .map(entry => `<div style="margin-bottom: 5px; text-shadow: 0 0 8px #0ff;">${entry}</div>`)
       .join('');
   }
 </script>
