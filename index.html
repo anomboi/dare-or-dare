@@ -49,11 +49,11 @@
   </style>
 </head>
 <body>
-  <h1>Neon Rave: Gay Dares Game</h1>
+  <h1>Dare or Dare</h1>
 
   <div id="player-setup">
     <p>Enter player names (separated by commas):</p>
-    <input type="text" id="player-names" placeholder="e.g. A, B, C" size="40">
+    <input type="text" id="player-names" placeholder="e.g. player 1, player 2, player 3" size="40">
     <br>
     <button onclick="startGame()">Start Game</button>
   </div>
@@ -73,15 +73,15 @@
 
   <script>
     const originalDares = [
-      "Erection Duel: Strip and see who gets hard first. 🍆",
+      "Erection Duel: Strip and see who gets hard first with someone. 🍆",
       "Lap Grind Interrogation: Sit on someone's lap and ask forbidden questions while grinding. 💥",
-      "Moan Mimic: Recreate your partner’s bedroom noises. 😜",
+      "Moan Mimic: Recreate bedroom noises of someone. 😜",
       "Frottage Relay: Dry hump someone for 20 seconds. 😍",
-      "Tease Master: Whisper what you'd do to each player. 👀",
+      "Tease Master: Whisper what you'd do to someone. 👀",
       "Erotic Hypnosis: Try to turn someone on with just your voice. 🔮",
       "Freeze Frame Fantasy: Pose naked while someone narrates your fantasy. 🎨",
-      "Obey Me: Be someone's servant for 3 rounds. 🛡",
-      "Mindfuck Strip Poker: One person owns your underwear now. 💰",
+      "Obey Me: Be someone’s servant for 3 rounds. 🛡",
+      "Mindfuck Strip Poker: One person owns your underwear now—someone decides. 💰",
       "Underwear Swap: Trade undies with someone for 3 rounds. 👙"
     ];
 
@@ -113,19 +113,24 @@
         alert("All dares completed! Restarting deck...");
       }
       const dareIndex = Math.floor(Math.random() * availableDares.length);
-      currentDare = availableDares.splice(dareIndex, 1)[0];
+      let rawDare = availableDares.splice(dareIndex, 1)[0];
+      const targetPlayer = getRandomOtherPlayer();
+      currentDare = rawDare.replace(/someone|somebody/gi, targetPlayer);
       document.getElementById('dare-text').innerText = currentDare;
     }
 
+    function getRandomOtherPlayer() {
+      const others = players.filter((_, i) => i !== currentPlayerIndex);
+      return others[Math.floor(Math.random() * others.length)];
+    }
+
     function acceptDare() {
-      const player = players[currentPlayerIndex];
       scores[currentPlayerIndex].dares.push(currentDare);
       updateScoreboard();
       nextTurn();
     }
 
     function skipDare() {
-      const player = players[currentPlayerIndex];
       const penalty = "Skipped dare: " + currentDare + " 🍷 Take a shot!";
       scores[currentPlayerIndex].dares.push(penalty);
       updateScoreboard();
